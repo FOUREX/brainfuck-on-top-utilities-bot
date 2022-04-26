@@ -1,29 +1,28 @@
 import logging
-import sqlite3
 
 from aiogram import Bot, Dispatcher, executor, types
+from motor.motor_asyncio import AsyncIOMotorClient
 from config import config
 from datetime import datetime
 
 
-connection = sqlite3.connect("db.sql")
-cursor = connection.cursor()
-
-
-cursor.execute("""CREATE TABLE IF NOT EXISTS users(
-    id TEXT,
-    name TEXT,
-    aliases TEXT
-)""")
-connection.commit()
+client = AsyncIOMotorClient(config["db"])
+db = client["db"]
+users = db["users"]
 
 
 logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=config["token"])
 dp = Dispatcher(bot)
+
 aliases = {}
 chat_id = -1001622038758
+
+
+def debug(obj: object):
+    if config["debug"] is True:
+        print(obj)
 
 
 def command(message: types.Message, command: str, permissions: str = "all"): # Работает - не трогай
@@ -41,10 +40,14 @@ async def load_aliases(*args): # Работает - не трогай
     chat = await bot.get_chat(chat_id)
     members_count = await chat.get_member_count()
 
-    users = cursor.execute("SELECT * FROM users").fetchmany(members_count)
-    for user in users:
-        for aliace in user[2].split():
-            aliases.update({aliace: user[0]})
+    documents = await users.find().to_list(length=members_count)
+
+    try:
+        for document in documents:
+            for aliase in document["aliases"]:
+                aliases.update({aliase: document["id"]})
+    except Exception as e:
+        debug(e)
 
 
 @dp.message_handler(commands=["help"]) # Работает - не трогай
@@ -53,28 +56,20 @@ async def help(message):
     await message.answer(f"*Алиасы*\nАлиас - с англ. псевдоним.\n`{p}Добавить алиас` -> добавляет алиас.\n`{p}Алиасы` -> показывает ваши алиасы или пользователя на чьё сообщение вы ответили.\n`{p}Создать алиас`\\* -> создаёт алиас для пользователя.", parse_mode="Markdown")
 
 
-@dp.message_handler(lambda message: command(message, "yep", "all")) # Работает - не трогай
-async def yep(message: types.Message):
-    await message.answer(f"{message.chat}")
-    await message.answer(f"{type(message.chat)}")
-
-
-@dp.message_handler(lambda message: command(message, "создать алиас", "dev")) # Работает - не трогай
-async def create_alias(message: types.Message):
+@dp.message_handler(lambda message: command(message, "добавить алиас*", "dev")) # Работает - не трогай
+async def new_aliase_dev(message: types.Message):
     id = message.reply_to_message.from_user.id
     name = message.reply_to_message.from_user.full_name
-    alias = message.text.lower().split()[2].replace("(", "").replace(")", "") + " "
+    alias = message.text.lower().split()[2].replace("(", "").replace(")", "")
 
-    if cursor.execute(f"SELECT * FROM users WHERE id = {id}").fetchone() is None:
-        cursor.execute(f"INSERT INTO users VALUES ({id}, \"{name}\", \"{alias}\")")
+    if await users.find_one({"id": id}) is None:
+        await users.insert_one({"id": id, "name": name, "aliases": [alias]})
     else:
-        user_aliases = cursor.execute(f"SELECT aliases FROM users WHERE id = {id}").fetchone()[0]
-        user_aliases += alias
-        cursor.execute(f"UPDATE users SET aliases = \"{user_aliases}\" WHERE id = {id}")
+        user_aliases = (await users.find_one({"id": id}))["aliases"]
+        user_aliases.append(alias)
+        await users.update_one({"id": id}, {"$set": {"aliases": user_aliases}})
 
-    connection.commit()
     await load_aliases()
-
     await message.reply("Алиас добавлен")
 
 
@@ -83,16 +78,15 @@ async def new_aliase(message: types.Message):
     try:
         id = message.from_user.id
         name = message.from_user.username
-        alias = message.text.lower().split()[2].replace("(", "").replace(")", "") + " "
+        alias = message.text.lower().split()[2].replace("(", "").replace(")", "")
     
-        if cursor.execute(f"SELECT * FROM users WHERE id = {id}").fetchone() is None:
-            cursor.execute(f"INSERT INTO users VALUES ({id}, \"{name}\", \"{alias}\")")
+        if await users.find_one({"id": id}) is None:
+            await users.insert_one({"id": id, "name": name, "aliases": [alias]})
         else:
-            user_aliases = cursor.execute(f"SELECT aliases FROM users WHERE id = {id}").fetchone()[0]
-            user_aliases += alias
-            cursor.execute(f"UPDATE users SET aliases = \"{user_aliases}\" WHERE id = {id}")
+            user_aliases = (await users.find_one({"id": id}))["aliases"]
+            user_aliases.append(alias)
+            await users.update_one({"id": id}, {"$set": {"aliases": user_aliases}})
 
-        connection.commit()
         await load_aliases()
         await message.reply("Алиас добавлен")
         
@@ -100,20 +94,48 @@ async def new_aliase(message: types.Message):
         print(f"[{str(datetime.now().time()).split('.')[0]}]: {e}")
 
 
+@dp.message_handler(lambda message: command(message, "удалить алиас*", "dev")) # Работает - не трогай
+async def delete_aliase_dev(message: types.Message):
+    id = message.reply_to_message.from_user.id
+    index = int(message.text.lower().split()[2])
+
+    try:
+        user_aliases = (await users.find_one({"id": id}))["aliases"]
+        user_aliases.pop(index)
+        await users.update_one({"id": id}, {"$set": {"aliases": user_aliases}})
+
+        await message.reply("Алиас удалён")
+    except Exception as e:
+        debug(e)
+
+
+@dp.message_handler(lambda message: command(message, "удалить алиас", "all")) # Работает - не трогай
+async def delete_aliase(message: types.Message):
+    id = message.from_user.id
+    index = int(message.text.lower().split()[2])
+
+    try:
+        user_aliases = (await users.find_one({"id": id}))["aliases"]
+        user_aliases.pop(index)
+        await users.update_one({"id": id}, {"$set": {"aliases": user_aliases}})
+
+        await message.reply("Алиас удалён")
+    except Exception as e:
+        debug(e)
+
+
 @dp.message_handler(lambda message: command(message, "алиасы", "all")) # Работает - не трогай
 async def user_aliases(message: types.Message):
     try:
         if message.reply_to_message:
             id = message.reply_to_message.from_user.id
-            name = message.reply_to_message.from_user.full_name
         else:
             id = message.from_user.id
-            name = message.from_user.full_name
 
-        user_aliases = cursor.execute(f"SELECT aliases FROM users WHERE id = {id}").fetchone()[0]
+        user_aliases = (await users.find_one({"id": id}))["aliases"]
         
         text = ""
-        for i, user_aliase in enumerate(user_aliases.split()):
+        for i, user_aliase in enumerate(user_aliases):
             text += f"{i}: {user_aliase}\n"
 
         await message.answer(text)
