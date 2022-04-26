@@ -1,12 +1,12 @@
 import logging
-import psycopg2
+import sqlite3
 
 from aiogram import Bot, Dispatcher, executor, types
 from config import config
 from datetime import datetime
 
 
-connection = psycopg2.connect("dbname=dbvdqq2t0qn3gj host=ec2-63-35-156-160.eu-west-1.compute.amazonaws.com password=714c029d6219f0689eb18667669374001c9703a5f4a4217dcc9831081744f2de")
+connection = sqlite3.connect("db.sql")
 cursor = connection.cursor()
 
 
