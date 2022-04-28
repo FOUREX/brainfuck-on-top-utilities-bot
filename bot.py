@@ -200,12 +200,12 @@ async def help(message: types.Message):  # type: ignore
     for cls in classes:
         text += f"*{cls}*\n"
         for command in classes[cls]:
-            text += f"`{command['command']} `"  # type: ignore
+            text += f"*>* `{command['command']} `"  # type: ignore
 
             if "args" in command:  # type: ignore
                 for arg in command["args"]:  # type: ignore
                     text += "`{" + f"{arg}: {command['args'][arg]}" + "}` "  # type: ignore
-            text += f"\n*>* {command['description']} \n"  # type: ignore
+            text += f"\n{command['description']} \n"  # type: ignore
 
     await message.answer(text, parse_mode="Markdown")
 
