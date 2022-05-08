@@ -4,6 +4,8 @@ from aiogram import Bot, Dispatcher, executor, types
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import config
 from datetime import datetime
+from alerts import get_alerts
+from psutil import virtual_memory, cpu_percent
 
 
 client = AsyncIOMotorClient(config["db"])
@@ -18,6 +20,7 @@ dp = Dispatcher(bot)
 
 aliases = {}
 chat_id = -1001622038758
+start_time = datetime.now()
 
 
 def debug(obj: object): # Работает - не трогай
@@ -190,15 +193,53 @@ class Aliases: # Работает - не трогай
             await message.answer("Нету алиасов")
 
 
+class Utilities: # Работает - не трогай
+    @classmethod
+    def commands(cls):
+        return [
+            cls.alerts, cls.info  # type: ignore
+        ]
+
+
+    @_help(
+        command = f"Воздушная тревога",
+        description = "Список мест с воздушными тревогами в Украине.",
+        permissions = "all"
+    )
+    @dp.message_handler(lambda message: command(message, "воздушная тревога", "all")) # Работает - не трогай
+    async def alerts(message: types.Message):  # type: ignore
+        try:
+            alerts = await get_alerts()
+            places = '\n'.join([alert + ' обл.' if alert.endswith('а') else alert for alert in alerts['alerts']])
+            updated_at = alerts['updated_at']
+            await message.answer(f"*Список мест с воздушной тревогой*:\n\n{places}\n\nОбновлено: `{updated_at}`", parse_mode="Markdown")
+        except Exception as e:
+            await message.answer(f"*Ошибка!*\n```{e}```\n[FOUREX](tg://user?id={config['dev']})", parse_mode="Markdown")
+    
+
+    @_help(
+        command = f"Инфо",
+        description = "Ионормация о боте.",
+        permissions = "all"
+    )
+    @dp.message_handler(lambda message: command(message, "инфо", "all")) # Работает - не трогай
+    async def info(message: types.Message):  # type: ignore
+        uptime = str(datetime.now() - start_time).split(".")[0]
+        memory_usage = f"{virtual_memory().used // 1024 // 1024}/{virtual_memory().total // 1024 // 1024} МБ ({virtual_memory().percent}%)"
+        cpu_load = f"{cpu_percent()}%"
+        await message.answer(f"*Аптайм*: {uptime}\n*ОЗУ*: {memory_usage}\n*ЦПУ*: {cpu_load}\n[Разраб](tg://user?id={config['dev']})|[GitHub](https://github.com/FOUREX/brainfuck-on-top-utilities-bot)", parse_mode="Markdown")
+
+
 @dp.message_handler(commands=["help"]) # Работает - не трогай
 async def help(message: types.Message):  # type: ignore
     text = ""
     classes = {
-        "Алиасы": Aliases.commands()
+        "Алиасы": Aliases.commands(),
+        "Утилиты": Utilities.commands()
     }
     
     for cls in classes:
-        text += f"*{cls}*\n"
+        text += f"\n*{cls}*\n"
         for command in classes[cls]:
             text += f"*>* `{command['command']} `"  # type: ignore
 

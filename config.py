@@ -2,5 +2,6 @@ config = {
     "db": "",
     "token": "",
     "prefix": "!",
-    "debug": False
+    "debug": False,
+    "dev": 991921147
 }
