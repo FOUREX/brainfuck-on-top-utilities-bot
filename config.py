@@ -1,5 +1,4 @@
 config = {
-    "token": "5392046701:AAGfcd6Cde21omC05mjPCTRpULgmWcUgl_c",
     "prefix": "!",
     "log_in_file": True,
     "name": "Brainfuck on top utilities",

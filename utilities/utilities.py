@@ -9,6 +9,7 @@ from config import config
 PREFIX = config["prefix"]
 BOT_NAME = config["name"]
 ALLOWED_CHAT_ID = config["allowed_chat_id"]
+LOG_IN_FILE = config["log_in_file"]
 
 
 def get_time():
@@ -90,8 +91,8 @@ def command_check(message: Message, command: str):
 class Logger:
     @staticmethod
     def dump_log():
-        _start_time = start_time.strftime('%m.%d %H:%M')
-        _end_time = datetime.now().strftime('%m.%d %H:%M')
+        _start_time = start_time.strftime('%m-%d %H.%M')
+        _end_time = datetime.now().strftime('%m-%d %H.%M')
         name = f"{_start_time} - {_end_time}"
         with open(f"logs/{name}", "w") as f:
             with open("logs/latest", "r") as _f:
@@ -102,8 +103,11 @@ class Logger:
 
     @staticmethod
     def log_in_file(message):
+        if not LOG_IN_FILE:
+            return
+
         message = f"{message}\n"
-        with open("logs/latest", "a") as f:
+        with open("logs/latest", "a", encoding="utf-8") as f:
             f.write(message)
 
             f.close()

@@ -11,9 +11,10 @@ from bot import bot, dp
 from config import config
 
 
+__version__ = "2.1"
+
 PREFIX = config["prefix"]
 LOG_IN_FILE = config["log_in_file"]
-
 
 logger = Logger()
 start_time = datetime.now()
@@ -23,11 +24,11 @@ loaded_cogs = {}
 async def on_startup(*_):
     create_db()
 
-    logger.info("Ready to fuck your mother (:")
-
     if LOG_IN_FILE:
         if not isdir("logs"):
             mkdir("logs")
+
+    logger.info("Ready to fuck your mother (:")
 
 
 async def on_shutdown(*_):
@@ -35,8 +36,10 @@ async def on_shutdown(*_):
     conn.close()
 
     logger.info("Not ready to fuck your mother ):")
-    logger.dump_log()
-    remove("logs/latest")
+
+    if LOG_IN_FILE:
+        logger.dump_log()
+        remove("logs/latest")
 
 
 def load_cogs():
