@@ -1,11 +1,16 @@
+from os import listdir
+from datetime import datetime
+
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.utils.callback_data import CallbackData
 from aiogram.bot.bot import Bot
 from aiogram.dispatcher.dispatcher import Dispatcher
-from os import listdir
+from psutil import cpu_percent, virtual_memory, disk_usage
 
+from bot import start_time
 from utilities.utilities import message_command, command_check, Logger
 from utilities.alerts import get_alerts_map, get_alerts, get_alerts_map_theme, set_alerts_map_theme
+from config import config
 
 
 custom_data = CallbackData("post", "action", "data")
@@ -33,7 +38,7 @@ class Utils:
     @classmethod
     def commands(cls) -> dict:
         return {
-            "Утилиты": [cls.alerts]
+            "Утилиты": [cls.alerts, cls.bot_info]
         }
 
     @message_command(
@@ -82,6 +87,34 @@ class Utils:
 
         await message.reply_photo(alerts_map, caption=text, reply_markup=markup)
 
+    @message_command(
+        command="бот",
+        description="Информация о сервере и боте."
+    )
+    async def bot_info(self, message: Message):
+        uptime = str(datetime.now() - start_time).split(".")[0]
+        ram_total = virtual_memory().total // 1024 // 1024
+        ram_used = virtual_memory().used // 1024 // 1024
+        ram_used_percent = virtual_memory().percent
+        disk_total = disk_usage('/').total // 1024 // 1024 // 1024
+        disk_used = disk_usage('/').used // 1024 // 1024 // 1024
+        disk_used_percent = disk_usage('/').percent
+
+        msg = "*Статистика*\n" \
+              "\n" \
+              f"*ОЗУ*: {ram_used}/{ram_total} МБ ({ram_used_percent:.1f}%)\n" \
+              f"*ЦПУ*: {cpu_percent()}%\n" \
+              f"*Диск*: {disk_used}/{disk_total} ГБ ({disk_used_percent:.1f}%)\n" \
+              f"*Аптайм*: {uptime}\n" \
+              "\n" \
+              "\n" \
+              "*Информация*\n" \
+              "\n" \
+              f"[Разработчик](tg://user?id={config['dev_id']})|" \
+              f"[GitHub](https://github.com/FOUREX/brainfuck-on-top-utilities-bot)"
+
+        await message.answer(msg, parse_mode="Markdown")
+
     @staticmethod
     async def change_alerts_map_theme(call: CallbackQuery):
         chat_id = call.message.chat.id
@@ -122,8 +155,10 @@ def setup(bot: Bot, dp: Dispatcher, logger: Logger) -> dict:
     utils = Utils(bot, logger)
 
     _alerts = utils.alerts
+    _bot_info = utils.bot_info
 
     dp.register_message_handler(_alerts, lambda message: command_check(message, _alerts.command))
+    dp.register_message_handler(_bot_info, lambda message: command_check(message, _bot_info.command))
 
     _change_alerts_map_theme = utils.change_alerts_map_theme
     _set_alerts_map_theme = utils.set_alerts_map_theme

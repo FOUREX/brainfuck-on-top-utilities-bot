@@ -92,7 +92,6 @@ class Aliases:
 
         cur.execute("SELECT alias FROM aliases WHERE chat_id = ? and user_id = ?", (chat_id, user_id))
         aliases = cur.fetchmany(LIMIT_ALIASES)
-        print(aliases)
 
         text = f"*Алиасы {user.mention}*\n"
         text += "> `Индекс`: значение\n\n"

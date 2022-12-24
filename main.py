@@ -15,6 +15,7 @@ __version__ = "2.1"
 
 PREFIX = config["prefix"]
 LOG_IN_FILE = config["log_in_file"]
+ALLOWED_CHAT_ID = config["allowed_chat_id"]
 
 logger = Logger()
 start_time = datetime.now()
@@ -29,6 +30,7 @@ async def on_startup(*_):
             mkdir("logs")
 
     logger.info("Ready to fuck your mother (:")
+    await bot.send_message(ALLOWED_CHAT_ID, "+Свет (:")
 
 
 async def on_shutdown(*_):
@@ -36,6 +38,7 @@ async def on_shutdown(*_):
     conn.close()
 
     logger.info("Not ready to fuck your mother ):")
+    await bot.send_message(ALLOWED_CHAT_ID, "-Свет ):")
 
     if LOG_IN_FILE:
         logger.dump_log()
@@ -56,11 +59,14 @@ def load_cogs():
 @dp.message_handler(commands=["help"])
 async def help_command(message: types.Message):
     text = "*Команды бота*\n" \
-          f"*~* _Префикс_ -> `{PREFIX}`" \
-           "\n\n```" \
+           f"_Префикс_: `{PREFIX}`\n\n" \
+           "```\n" \
            "{аргумент} -> обязательный\n" \
-           "[аргумент] -> не обязательный" \
-           "\n```"
+           "[аргумент] -> не обязательный\n" \
+           "[аргумент: *str] -> массив\n" \
+           "\n" \
+           f"{PREFIX}новый алиас сергей нефор\n" \
+           "```"
 
     for cog in loaded_cogs:
         text += f"\n\n*{cog}*"
