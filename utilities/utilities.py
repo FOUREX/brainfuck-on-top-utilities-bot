@@ -76,8 +76,8 @@ def message_command(**kwargs):
     return wrapper
 
 
-def command_check(message: Message, command: str):
-    if message.chat.id != ALLOWED_CHAT_ID:
+def command_check(message: Message, command: str, public: bool = False):
+    if message.chat.id != ALLOWED_CHAT_ID and not public:
         return False
 
     command = PREFIX + command
