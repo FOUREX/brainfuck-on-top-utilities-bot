@@ -8,8 +8,8 @@ from utilities.db import cur, conn
 from utilities.utilities import message_command, command_check, get_args, get_user, Logger
 from config import config
 
-DEV_ID = config["dev_id"]
 
+DEV_ID = config["dev_id"]
 
 LIMIT_ALIASES = 50
 LIMIT_ALIAS_LENGTH = 32
@@ -23,7 +23,7 @@ class Aliases:
     @classmethod
     def commands(cls) -> dict:
         return {
-            "Алиасы": [cls.new_alias, cls.delete_alias, cls.purge_aliases, cls.aliases]
+            "Алиасы": [cls.new_alias, cls.aliases, cls.delete_alias, cls.purge_aliases]
         }
 
     @message_command(
@@ -39,8 +39,6 @@ class Aliases:
         user = get_user(message)
         user_id = user.id
         aliases = get_args(message.text, self.new_alias.command, True, max_length=LIMIT_ALIAS_LENGTH)
-
-        # 8==============================================================D
 
         if aliases:
             data = [(chat_id, arg, user_id) for arg in aliases]
@@ -58,10 +56,9 @@ class Aliases:
             if slots > 0:
                 cur.executemany("INSERT INTO aliases VALUES (?, ?, ?)", data)
 
-                text = f"🟢 *Алиасы добавлены для {user.mention}*\n"
-                text += "> `Индекс`: значение\n\n"
-
-                text += "\n".join(f"`{index}`: {alias}" for index, alias in enumerate(aliases))
+                text = f"🟢 *Алиасы добавлены для {user.mention}*\n" \
+                       f"> `Индекс`: значение\n\n" \
+                       f"\n".join(f"`{index}`: {alias}" for index, alias in enumerate(aliases))
 
                 await message.reply(text, parse_mode="Markdown")
 
@@ -88,13 +85,11 @@ class Aliases:
         user = get_user(message)
         user_id = user.id
 
-        # 8==============================================================D
-
         cur.execute("SELECT alias FROM aliases WHERE chat_id = ? and user_id = ?", (chat_id, user_id))
         aliases = cur.fetchmany(LIMIT_ALIASES)
 
-        text = f"*Алиасы {user.mention}*\n"
-        text += "> `Индекс`: значение\n\n"
+        text = f"*Алиасы {user.mention}*\n" \
+               f"> `Индекс`: значение\n\n"
 
         for index, alias in enumerate(aliases):
             alias = alias[0]
@@ -116,8 +111,6 @@ class Aliases:
             user = get_user(message)
             user_id = user.id
 
-        # 8==============================================================D
-
         try:
             args = get_args(message.text, self.delete_alias.command, _type=int)
         except ValueError:
@@ -131,8 +124,8 @@ class Aliases:
         cur.execute("SELECT alias FROM aliases WHERE chat_id = ? and user_id = ?", (chat_id, user_id))
         aliases = cur.fetchmany(LIMIT_ALIASES)
 
-        text = f"🟢 *Алиасы удалены для {user.mention}*\n"
-        text += "> `Индекс`: значение\n\n"
+        text = f"🟢 *Алиасы удалены для {user.mention}*\n" \
+               f"> `Индекс`: значение\n\n"
         to_delete = []
 
         for index in args:
@@ -149,7 +142,6 @@ class Aliases:
         cur.executemany("DELETE FROM aliases WHERE chat_id = ? and alias = ?", to_delete)
 
         await message.reply(text, parse_mode="Markdown")
-
         conn.commit()
 
     @message_command(
@@ -169,7 +161,6 @@ class Aliases:
         cur.execute("DELETE FROM aliases WHERE chat_id = ? and user_id = ?", (chat_id, user_id))
 
         await message.reply(f"🟢 *Алиасы очищены для {user.mention}*", parse_mode="Markdown")
-
         conn.commit()
 
     @staticmethod
@@ -177,22 +168,21 @@ class Aliases:
         chat_id = message.chat.id
         message_text = message.text.lower()
 
-        if "()" in message.text:
-            offset = message_text.find("()")
-            alias = message_text[:offset]
-            alias = alias.replace(" ", "")
+        offset = message_text.find("()")
+        alias = message_text[:offset]
+        alias = alias.replace(" ", "")
 
-            sql = "SELECT user_id FROM aliases WHERE chat_id = ? AND alias = ?"
-            cur.execute(f"SELECT EXISTS ({sql})", (chat_id, alias))
-            alias_is_exists = bool(cur.fetchone()[0])
+        sql = "SELECT user_id FROM aliases WHERE chat_id = ? AND alias = ?"
+        cur.execute(f"SELECT EXISTS ({sql})", (chat_id, alias))
+        alias_is_exists = bool(cur.fetchone()[0])
 
-            if not alias_is_exists:
-                return
+        if not alias_is_exists:
+            return
 
-            cur.execute(sql, (chat_id, alias))
-            user_id = cur.fetchone()[0]
+        cur.execute(sql, (chat_id, alias))
+        user_id = cur.fetchone()[0]
 
-            await message.reply(f"[{alias}](tg://user?id={user_id})", parse_mode="Markdown")
+        await message.reply(f"[{alias.title()}](tg://user?id={user_id})", parse_mode="Markdown")
 
 
 def setup(bot: Bot, dp: Dispatcher, logger: Logger) -> dict:
