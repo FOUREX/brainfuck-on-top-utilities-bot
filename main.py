@@ -11,7 +11,7 @@ from bot import bot, dp
 from config import config
 
 
-__version__ = "2.1"
+__version__ = "3.0 Dev"
 
 PREFIX = config["prefix"]
 LOG_IN_FILE = config["log_in_file"]
@@ -63,7 +63,7 @@ async def help_command(message: types.Message):
            "```\n" \
            "{аргумент} -> обязательный\n" \
            "[аргумент] -> не обязательный\n" \
-           "[аргумент: *str] -> массив\n" \
+           "[аргумент: *str] -> массив (через пробел)\n" \
            "\n" \
            f"{PREFIX}новый алиас сергей нефор\n" \
            "```"
@@ -100,8 +100,8 @@ def main():
     executor.start_polling(
         dp,
         skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown
+        # on_startup=on_startup,
+        # on_shutdown=on_shutdown
     )
 
 

@@ -194,10 +194,10 @@ def setup(bot: Bot, dp: Dispatcher, logger: Logger) -> dict:
     _purge_alias = aliases.purge_aliases
     _detect_alias = aliases.detect_alias
 
-    dp.register_message_handler(_new_alias, lambda message: command_check(message, _new_alias.command))
-    dp.register_message_handler(_aliases, lambda message: command_check(message, _aliases.command))
-    dp.register_message_handler(_delete_alias, lambda message: command_check(message, _delete_alias.command))
-    dp.register_message_handler(_purge_alias, lambda message: command_check(message, _purge_alias.command))
+    dp.register_message_handler(_new_alias, lambda message: command_check(message, _new_alias.command, True))
+    dp.register_message_handler(_aliases, lambda message: command_check(message, _aliases.command, True))
+    dp.register_message_handler(_delete_alias, lambda message: command_check(message, _delete_alias.command, True))
+    dp.register_message_handler(_purge_alias, lambda message: command_check(message, _purge_alias.command, True))
     dp.register_message_handler(_detect_alias, lambda message: "()" in message.text)
 
     return aliases.commands()
