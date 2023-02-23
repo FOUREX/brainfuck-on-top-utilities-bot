@@ -23,5 +23,4 @@ def create_db():
 
 def new_user(chat_id: int, user_id: int, alerts_map_theme: str):
     cur.execute("INSERT INTO users VALUES (?, ?, ?)", (chat_id, user_id, alerts_map_theme))
-
     conn.commit()
