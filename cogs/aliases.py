@@ -57,8 +57,8 @@ class Aliases:
                 cur.executemany("INSERT INTO aliases VALUES (?, ?, ?)", data)
 
                 text = f"🟢 *Алиасы добавлены для {user.mention}*\n" \
-                       f"> `Индекс`: значение\n\n" \
-                       f"\n".join(f"`{index}`: {alias}" for index, alias in enumerate(aliases))
+                       f"> `Индекс`: значение\n\n"
+                text += "\n".join(f'`{index}`: {alias}' for index, alias in enumerate(aliases))
 
                 await message.reply(text, parse_mode="Markdown")
 
@@ -90,10 +90,7 @@ class Aliases:
 
         text = f"*Алиасы {user.mention}*\n" \
                f"> `Индекс`: значение\n\n"
-
-        for index, alias in enumerate(aliases):
-            alias = alias[0]
-            text += f"`{index}`: {alias}\n"
+        text += "\n".join([f"`{index}`: {alias}" for index, alias in enumerate(aliases)])
 
         await message.reply(text, parse_mode="Markdown")
 
