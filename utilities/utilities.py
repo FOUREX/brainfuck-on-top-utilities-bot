@@ -68,6 +68,9 @@ def message_command(**kwargs):
         function.command_kwargs = kwargs
         function.command = kwargs["command"]
 
+        if "aliases" in kwargs:
+            function.aliases = kwargs["aliases"]
+
         if "args" in kwargs:
             function.args = kwargs["args"]
 
@@ -76,7 +79,7 @@ def message_command(**kwargs):
     return wrapper
 
 
-def command_check(message: Message, command: str, public: bool = False):
+def command_check(message: Message, command: str, public: bool = False, aliases: list | tuple = None):
     if message.chat.id != ALLOWED_CHAT_ID and not public:
         return False
 
@@ -84,6 +87,16 @@ def command_check(message: Message, command: str, public: bool = False):
     _message_command = message.text.lower()[:len(command)]
 
     check = _message_command == command
+
+    if not check and aliases:
+        for alias in aliases:
+            command = PREFIX + alias
+            _message_command = message.text.lower()[:len(command)]
+
+            check = _message_command == command
+
+            if check:
+                break
 
     return check
 

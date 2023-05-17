@@ -25,6 +25,7 @@ class Utils:
 
     @message_command(
         command="тревога",
+        aliases=("тр", "al", "alerts"),
         description="Карта воздушных тревог в Украине."
     )
     async def alerts(self, message: Message):
@@ -70,7 +71,7 @@ def setup(bot: Bot, dp: Dispatcher, logger: Logger) -> dict:
     _alerts = utils.alerts
     _bot_info = utils.bot_info
 
-    dp.register_message_handler(_alerts, lambda message: command_check(message, _alerts.command, True))
+    dp.register_message_handler(_alerts, lambda message: command_check(message, _alerts.command, True, _alerts.aliases))
     dp.register_message_handler(_bot_info, lambda message: command_check(message, _bot_info.command, True))
 
     return utils.commands()
