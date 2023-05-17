@@ -90,7 +90,7 @@ class Aliases:
 
         text = f"*Алиасы {user.mention}*\n" \
                f"> `Индекс`: значение\n\n"
-        text += "\n".join([f"`{index}`: {alias}" for index, alias in enumerate(aliases)])
+        text += "\n".join([f"`{index}`: {alias[0]}" for index, alias in enumerate(aliases)])
 
         await message.reply(text, parse_mode="Markdown")
 
