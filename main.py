@@ -71,7 +71,7 @@ async def help_command(message: types.Message):
     for cog in loaded_cogs:
         text += f"\n\n*{cog}*"
         for command in loaded_cogs[cog]:
-            text += f"\n*>* `{PREFIX + command.command}` "
+            text += f"\n*>* `{PREFIX + command.command + ', ' + ', '.join([alias for alias in command.aliases])}` "  # Переробить
             command_kwargs = command.command_kwargs
 
             if "args" in command_kwargs:

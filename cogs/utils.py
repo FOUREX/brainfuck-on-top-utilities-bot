@@ -8,7 +8,7 @@ from aiogram.dispatcher.dispatcher import Dispatcher
 from psutil import cpu_percent, virtual_memory, disk_usage
 
 from bot import alerts_client, start_time
-from utilities.utilities import message_command, command_check, Logger
+from utilities.utilities import message_command, command_check, get_user, Logger
 from config import config
 
 
@@ -20,12 +20,12 @@ class Utils:
     @classmethod
     def commands(cls) -> dict:
         return {
-            "Утилиты": [cls.alerts, cls.bot_info]
+            "Утилиты": [cls.alerts, cls.user_info, cls.bot_info]
         }
 
     @message_command(
         command="тревога",
-        aliases=("тр", "al", "alerts"),
+        aliases=("тривога", "тр", "alerts", "al"),
         description="Карта воздушных тревог в Украине."
     )
     async def alerts(self, message: Message):
@@ -39,6 +39,22 @@ class Utils:
         text = f"{oblasts}\n\n{hromades}\n\n{cities}"
 
         await message.reply_photo(alerts_map, text)
+
+    @message_command(
+        command="инфо",
+        description="Информация о пользователе"
+    )
+    async def user_info(self, message: Message):
+        user = get_user(message)
+
+        message_text = f"*Информация о {user.mention}*" \
+                       f"" \
+                       f"" \
+                       f"" \
+                       f"" \
+                       f""
+
+        await message.reply(message_text, parse_mode="Markdown")
 
     @message_command(
         command="бот",
@@ -69,9 +85,11 @@ def setup(bot: Bot, dp: Dispatcher, logger: Logger) -> dict:
     utils = Utils(bot, logger)
 
     _alerts = utils.alerts
+    _user_info = utils.user_info
     _bot_info = utils.bot_info
 
     dp.register_message_handler(_alerts, lambda message: command_check(message, _alerts.command, True, _alerts.aliases))
+    dp.register_message_handler(_user_info, lambda message: command_check(message, _user_info.command, True))
     dp.register_message_handler(_bot_info, lambda message: command_check(message, _bot_info.command, True))
 
     return utils.commands()

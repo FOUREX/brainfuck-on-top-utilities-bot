@@ -90,9 +90,13 @@ class Aliases:
 
         text = f"*Алиасы {user.mention}*\n" \
                f"> `Индекс`: значение\n\n"
-        text += "\n".join([f"`{index}`: {alias[0]}" for index, alias in enumerate(aliases)])
 
-        await message.reply(text, parse_mode="Markdown")
+        text += "\n".join([f"{index}: {alias[0]}" for index, alias in enumerate(aliases)])
+
+        print(text[::len(text)])
+
+        await message.reply("Алиасов не будет, разработчик закончил жизнь самоубийством", parse_mode="Markdown")
+        # await message.reply(text[::len(text)], parse_mode="Markdown")
 
     @message_command(
         command="удалить алиас",

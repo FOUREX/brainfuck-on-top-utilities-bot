@@ -67,6 +67,8 @@ def message_command(**kwargs):
     def wrapper(function):
         function.command_kwargs = kwargs
         function.command = kwargs["command"]
+        function.aliases = []
+        function.args = {}
 
         if "aliases" in kwargs:
             function.aliases = kwargs["aliases"]
