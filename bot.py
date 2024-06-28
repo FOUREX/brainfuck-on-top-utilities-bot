@@ -16,3 +16,5 @@ bot = Bot(BOT_TOKEN)
 dp = Dispatcher(bot)
 
 start_time = datetime.now()
+
+# Кря
