@@ -20,3 +20,5 @@ start_time = datetime.now()
 # Кря
 
 # Кря
+
+krya = 2
