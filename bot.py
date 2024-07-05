@@ -21,4 +21,4 @@ start_time = datetime.now()
 
 # Кря
 
-krya = 5
+krya = 6
